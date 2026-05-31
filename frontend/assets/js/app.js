@@ -215,32 +215,33 @@ const BUSINESS_DETAIL_AREAS = [
   { key: "260102", name: "260102", left: 18.8, top: 93.2, width: 12.5, height: 5.8 },
   { key: "260105", name: "260105", left: 18.8, top: 82.0, width: 12.5, height: 6.8 },
   { key: "260106", name: "260106", left: 7.0, top: 82.0, width: 11.5, height: 6.8 },
-  { key: "260201", name: "260201", left: 7.0, top: 70.5, width: 11.5, height: 6.6 },
-  { key: "260202", name: "260202", left: 18.8, top: 70.5, width: 12.5, height: 6.6 },
+  { key: "260201", name: "260201", left: 7.0, top: 72.5, width: 11.5, height: 6.6 },
+  { key: "260202", name: "260202", left: 18.8, top: 72.5, width: 12.5, height: 6.6 },
   { key: "260204", name: "260204", left: 82.0, top: 57.8, width: 15.0, height: 8.0 },
   { key: "260205", name: "260205", left: 82.0, top: 46.8, width: 15.0, height: 7.2 },
   { key: "260206", name: "260206", left: 18.8, top: 46.8, width: 12.5, height: 7.2 },
   { key: "260207", name: "260207", left: 7.0, top: 46.8, width: 11.5, height: 7.2 },
-  { key: "260209", name: "260209", left: 18.8, top: 57.8, width: 12.5, height: 8.0 },
-  { key: "260210", name: "260210", left: 7.0, top: 57.8, width: 11.5, height: 8.0 },
-  { key: "teacher_lounge_2f", name: "教師休息室", left: 7.0, top: 53.5, width: 11.5, height: 4.0 },
+  { key: "260209", name: "260209", left: 18.8, top: 55.8, width: 12.5, height: 8.0 },
+  { key: "260210", name: "260210", left: 7.0, top: 63, width: 22, height: 7.0 },
+  { key: "teacher_lounge_2f", name: "教師休息室", left: 7.0, top: 55.8, width: 11.5, height: 8.0 },
   { key: "260301", name: "260301", left: 7.0, top: 36.3, width: 11.5, height: 7.0 },
   { key: "260302", name: "260302", left: 18.8, top: 36.3, width: 12.5, height: 7.0 },
-  { key: "260303", name: "260303 & EMBA", left: 43.5, top: 36.3, width: 12.5, height: 7.0 },
-  { key: "260304", name: "260304", left: 56.5, top: 36.3, width: 14.5, height: 7.0 },
-  { key: "260305", name: "260305", left: 82.0, top: 36.3, width: 15.0, height: 7.0 },
-  { key: "260306", name: "260306", left: 91.5, top: 25.8, width: 5.8, height: 14.0 },
-  { key: "260307", name: "260307", left: 82.0, top: 25.2, width: 15.0, height: 7.5 },
-  { key: "260308", name: "260308", left: 56.5, top: 25.2, width: 14.5, height: 7.5 },
-  { key: "260309", name: "260309", left: 43.5, top: 25.2, width: 12.5, height: 7.5 },
-  { key: "260310", name: "260310", left: 82.0, top: 14.4, width: 15.0, height: 8.0 },
-  { key: "260311", name: "260311", left: 82.0, top: 5.2, width: 15.0, height: 8.2 },
-  { key: "260312", name: "260312", left: 18.8, top: 5.2, width: 12.5, height: 8.2 },
-  { key: "260313", name: "260313", left: 7.0, top: 5.2, width: 11.5, height: 8.2 },
-  { key: "260314", name: "260314", left: 7.0, top: 14.8, width: 11.5, height: 9.0 },
-  { key: "260315", name: "260315", left: 18.8, top: 14.8, width: 12.5, height: 9.0 },
-  { key: "260316", name: "260316", left: 7.0, top: 25.2, width: 24.2, height: 7.5 },
-  { key: "office_12f", name: "院系辦公室及研究室", left: 18.8, top: 0.5, width: 78.0, height: 4.8 },
+  { key: "260303", name: "260303 & EMBA", left: 43.5, top: 39.3, width: 12.5, height: 7.0 },
+  { key: "260304", name: "260304", left: 56.5, top: 39.3, width: 14.5, height: 7.0 },
+  { key: "260305", name: "260305", left: 76.0, top: 39.3, width: 13.0, height: 7.0 },
+  { key: "260306", name: "260306", left: 89.5, top: 28.8, width: 7.8, height: 15 },
+  { key: "260307", name: "260307", left: 76.0, top: 28.2, width: 13.0, height: 7.5 },
+  { key: "260308", name: "260308", left: 56.5, top: 28.2, width: 14.5, height: 7.5 },
+  { key: "260309", name: "260309", left: 43.5, top: 28.2, width: 12.5, height: 7.5 },
+  { key: "260310", name: "260310", left: 82.0, top: 18.4, width: 15.0, height: 8.0 },
+  { key: "260311", name: "260311", left: 82.0, top: 9.2, width: 15.0, height: 8.2 },
+  { key: "260312", name: "260312", left: 18.8, top: 9.2, width: 12.5, height: 8 },
+  { key: "260313", name: "260313", left: 7.0, top: 9.2, width: 11.5, height: 8 },
+  { key: "260314", name: "260314", left: 7.0, top: 18.8, width: 11.5, height: 8 },
+  { key: "260315", name: "260315", left: 18.8, top: 18.8, width: 12.5, height: 8},
+  { key: "260316", name: "260316", left: 7.0, top: 27.2, width: 24.2, height: 7.5 },
+  { key: "yushan_international_hall", name: "玉山國際廳", left: 73.5, top: 75.5, width: 24.5, height: 21.5 },
+  { key: "office_12f", name: "院系辦公室及研究室", left: 18.8, top: 4.5, width: 78.0, height: 4.8 },
 ];
 
 function findBusinessDetailArea(detailKey) {
@@ -289,17 +290,20 @@ function getBusinessMarkerPosition(detailKey, index, total) {
   };
 }
 
-function renderBusinessDetailAreas() {
+function renderBusinessDetailAreas(businessReports = []) {
   return BUSINESS_DETAIL_AREAS.map((area) => {
+    const count = businessReports.filter((r) => String(r.detail_key) === String(area.key)).length;
+
     return `
-      <button
-        type="button"
+      <div
         class="business-detail-area"
+        data-detail-key="${escapeHtml(area.key)}"
+        data-count="${count}"
         style="left: ${area.left}%; top: ${area.top}%; width: ${area.width}%; height: ${area.height}%;"
         title="${escapeHtml(area.name)}"
       >
-        <span>${escapeHtml(area.name)}</span>
-      </button>
+        <span>${escapeHtml(area.name)}｜${count} 筆通報</span>
+      </div>
     `;
   }).join("");
 }
@@ -1128,8 +1132,15 @@ function renderAreaSelectOptions(selectId, firstOptionText) {
     return;
   }
 
+  const customOption = selectId === "reportAreaSelect"
+    ? `
+      <option value="custom" data-area-key="custom">自選地點</option>
+    `
+    : "";
+
   select.innerHTML = `
     <option value="">${firstOptionText}</option>
+    ${customOption}
     ${locationAreas.map((area) => `
       <option value="${area.area_id}" data-area-key="${area.area_key}">${escapeHtml(area.area_name)}</option>
     `).join("")}
@@ -1622,7 +1633,7 @@ function showBuildingMapView(area, relatedReports = []) {
       buildingMapWrapper.classList.add("business-map-wrapper");
       buildingMapWrapper.innerHTML = `
         <img id="businessCollegeMap" class="business-map-img" src="./assets/maps/business-college-map.png" alt="商院教室配置圖" />
-        <div class="business-detail-layer">${renderBusinessDetailAreas()}</div>
+        <div class="business-detail-layer">${renderBusinessDetailAreas(relatedReports || [])}</div>
         <div class="business-marker-layer">${renderBusinessMapMarkers(relatedReports || [])}</div>
       `;
     }

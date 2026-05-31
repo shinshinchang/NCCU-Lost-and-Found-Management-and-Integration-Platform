@@ -12,7 +12,7 @@ const BUILDING_AREAS = [
     key: "jing_tang",
     name: "井塘樓",
     aliases: ["井塘樓"],
-    left: 70.5,
+    left: 69.5,
     top: 36.8,
     width: 5,
     height: 7.2
@@ -21,18 +21,18 @@ const BUILDING_AREAS = [
     key: "law_school",
     name: "法學院",
     aliases: ["法學院", "憇賢樓", "憩賢樓"],
-    left: 57.6,
-    top: 31.8,
-    width: 4.5,
-    height: 5.8
+    left: 57.3,
+    top: 30.2,
+    width: 5,
+    height: 4.6
   },
   {
     key: "xuesi",
     name: "學思樓",
     aliases: ["學思樓"],
-    left: 53.0,
+    left: 51.0,
     top: 9.5,
-    width: 3.2,
+    width: 4,
     height: 4.8
   },
   {
@@ -48,10 +48,10 @@ const BUILDING_AREAS = [
     key: "yixian",
     name: "逸仙樓",
     aliases: ["逸仙樓"],
-    left: 53.0,
+    left: 52.0,
     top: 15.8,
-    width: 3.8,
-    height: 10.2
+    width: 3,
+    height: 6.7
   },
   {
     key: "library",
@@ -66,37 +66,37 @@ const BUILDING_AREAS = [
     key: "zhixi",
     name: "志希樓",
     aliases: ["志希樓"],
-    left: 45.8,
+    left: 45,
     top: 17.0,
-    width: 3.0,
-    height: 7.2
+    width: 2.5,
+    height: 9.2
   },
   {
     key: "guofu",
     name: "果夫樓",
     aliases: ["果夫樓"],
-    left: 40.3,
+    left: 38.3,
     top: 17.2,
-    width: 3.8,
-    height: 7.2
+    width: 2.5,
+    height: 9.2
   },
   {
     key: "siwei",
     name: "四維堂",
     aliases: ["四維堂"],
     left: 40.6,
-    top: 35.5,
+    top: 32.5,
     width: 4.5,
-    height: 13.2
+    height: 10
   },
   {
     key: "lohas",
     name: "樂活",
     aliases: ["樂活", "倉庫"],
-    left: 32.2,
+    left: 30.2,
     top: 8.1,
-    width: 8.4,
-    height: 5.4
+    width: 10.4,
+    height: 6
   },
   {
     key: "information",
@@ -104,7 +104,7 @@ const BUILDING_AREAS = [
     aliases: ["資訊大樓", "電算中心"],
     left: 29.6,
     top: 17.7,
-    width: 6.2,
+    width: 7,
     height: 7.5
   },
   {
@@ -120,8 +120,8 @@ const BUILDING_AREAS = [
     key: "administration",
     name: "行政大樓",
     aliases: ["行政大樓"],
-    left: 34.1,
-    top: 35.6,
+    left: 33.1,
+    top: 34.6,
     width: 5.7,
     height: 10.8
   },
@@ -129,28 +129,37 @@ const BUILDING_AREAS = [
     key: "jiying",
     name: "集英樓",
     aliases: ["集英樓"],
-    left: 24.1,
+    left: 23.1,
     top: 14.4,
     width: 4.6,
-    height: 7.2
+    height: 8
   },
   {
     key: "journalism",
     name: "新聞館",
     aliases: ["新聞館"],
     left: 21.0,
-    top: 18.2,
-    width: 5.1,
-    height: 6.6
+    top: 23.2,
+    width: 8,
+    height: 3.3
   },
   {
     key: "dazhi",
     name: "大智樓",
     aliases: ["大智樓"],
     left: 13.2,
-    top: 13.8,
-    width: 5.2,
-    height: 4.4
+    top: 15.8,
+    width: 7,
+    height: 2.6
+  },
+  {
+    key: "daren_building",
+    name: "大仁樓",
+    aliases: ["大仁樓"],
+    left: 13.2,
+    top: 24.8,
+    width: 7,
+    height: 2.7
   },
   {
     key: "dayong",
@@ -159,41 +168,50 @@ const BUILDING_AREAS = [
     left: 13.0,
     top: 30.9,
     width: 11.6,
-    height: 6.4
+    height: 3.6
   },
   {
     key: "swimming_pool",
     name: "游泳池",
     aliases: ["游泳池"],
-    left: 58.2,
-    top: 43.2,
+    left: 62.2,
+    top: 45.2,
     width: 5.5,
-    height: 5.8
+    height: 4.5
   },
   {
     key: "gym",
     name: "體育館",
     aliases: ["體育館"],
-    left: 21.0,
-    top: 67.0,
-    width: 8.4,
-    height: 10.5
+    left: 20.0,
+    top: 65.0,
+    width: 9.4,
+    height: 12.5
   },
   {
     key: "research",
     name: "研究大樓",
     aliases: ["研究大樓"],
-    left: 47.7,
-    top: 7.1,
-    width: 4.4,
-    height: 7.3
+    left: 45.7,
+    top: 8,
+    width: 5.0,
+    height: 6.5
+  },
+  {
+    key: "daxian_library",
+    name: "達賢圖書館",
+    aliases: ["達賢圖書館"],
+    left: 80,
+    top: 5.2,
+    width: 10,
+    height: 10
   },
   {
     key: "zonghe_north",
     name: "綜合院館北棟",
     aliases: ["綜合院館北棟", "綜合院館", "綜院北棟"],
-    left: 16.6,
-    top: 31.7,
+    left: 15,
+    top: 35.7,
     width: 4.7,
     height: 7.2
   },
@@ -201,8 +219,8 @@ const BUILDING_AREAS = [
     key: "zonghe_south",
     name: "綜合院館南棟",
     aliases: ["綜合院館南棟", "綜院南棟"],
-    left: 15.7,
-    top: 43.5,
+    left: 16.5,
+    top: 45.5,
     width: 4.5,
     height: 7.8
   },
@@ -210,16 +228,16 @@ const BUILDING_AREAS = [
     key: "zhuangjing_1",
     name: "莊敬一舍",
     aliases: ["莊敬一舍"],
-    left: 58.1,
-    top: 10.5,
-    width: 4.4,
-    height: 7.4
+    left: 57.1,
+    top: 12,
+    width: 2.9,
+    height: 14.5
   },
   {
     key: "zhuangjing_2",
     name: "莊敬二舍",
     aliases: ["莊敬二舍"],
-    left: 61.8,
+    left: 58.1,
     top: 8.5,
     width: 4.3,
     height: 4.8
@@ -228,7 +246,7 @@ const BUILDING_AREAS = [
     key: "zhuangjing_3",
     name: "莊敬三舍",
     aliases: ["莊敬三舍"],
-    left: 65.2,
+    left: 63.2,
     top: 8.4,
     width: 4.0,
     height: 4.7

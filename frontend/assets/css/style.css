@@ -23,7 +23,7 @@ body {
   display: flex;
   align-items: center;
   gap: 14px;
-  cursor: pointer;
+  cursor: default;
 }
 
 .logo-box {
@@ -722,6 +722,17 @@ code {
 
 .business-marker-layer {
   z-index: 6;
+}
+
+/* Prevent the marker layer from blocking hover events on detail areas */
+.business-marker-layer {
+  pointer-events: none;
+}
+
+/* Keep the individual markers clickable */
+.business-marker-layer .business-map-marker {
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .business-detail-area {
