@@ -76,6 +76,11 @@ def report_select_sql():
             la.area_id,
             la.area_key,
             la.area_name,
+            cl.custom_x,
+            cl.custom_y,
+            cl.nearest_area_id,
+            near_area.area_name AS nearest_area_name,
+            near_area.area_key AS nearest_area_key,
             ld.detail_id,
             ld.detail_key,
             ld.detail_name,
@@ -91,6 +96,8 @@ def report_select_sql():
         JOIN category c ON i.category_id = c.category_id
         JOIN location l ON r.location_id = l.location_id
         LEFT JOIN location_area la ON r.area_id = la.area_id
+        LEFT JOIN custom_location cl ON r.report_id = cl.report_id
+        LEFT JOIN location_area near_area ON cl.nearest_area_id = near_area.area_id
         LEFT JOIN location_detail ld ON r.detail_id = ld.detail_id
         LEFT JOIN found_report fr ON r.report_id = fr.report_id
         LEFT JOIN verification_question vq ON fr.report_id = vq.found_report_id
@@ -220,6 +227,16 @@ def create_report():
     has_verification_question = request.form.get("has_verification_question") == "true"
     verification_question = (request.form.get("verification_question") or "").strip()
     verification_answer = (request.form.get("verification_answer") or "").strip()
+    custom_x_raw = request.form.get("custom_x")
+    custom_y_raw = request.form.get("custom_y")
+    nearest_area_id_raw = request.form.get("nearest_area_id")
+
+    try:
+        custom_x = float(custom_x_raw) if custom_x_raw not in (None, "") else None
+        custom_y = float(custom_y_raw) if custom_y_raw not in (None, "") else None
+        nearest_area_id = int(nearest_area_id_raw) if nearest_area_id_raw not in (None, "") else None
+    except ValueError:
+        return jsonify({"success": False, "message": "自選地點座標格式錯誤"}), 400
 
     if report_type == "F" and has_verification_question and (not verification_question or not verification_answer):
         return jsonify({"success": False, "message": "請填寫特徵問題與參考答案"}), 400
@@ -265,6 +282,44 @@ def create_report():
 
             if default_detail:
                 detail_id = default_detail["detail_id"]
+
+    area_info = fetch_one(
+        """
+        SELECT area_id, area_key, area_name
+        FROM location_area
+        WHERE area_id = %s
+        """,
+        (area_id,)
+    )
+
+    if not area_info:
+        return jsonify({"success": False, "message": "找不到大地點資料"}), 400
+
+    if area_info["area_key"] == "custom":
+        detail_id = None
+
+        if custom_x is None or custom_y is None:
+            return jsonify({"success": False, "message": "自選地點請先在地圖上選擇位置"}), 400
+
+        if custom_x < 0 or custom_x > 100 or custom_y < 0 or custom_y > 100:
+            return jsonify({"success": False, "message": "自選地點座標超出地圖範圍"}), 400
+
+        if nearest_area_id:
+            nearest_area = fetch_one(
+                """
+                SELECT area_id, area_name
+                FROM location_area
+                WHERE area_id = %s
+                """,
+                (nearest_area_id,)
+            )
+        else:
+            nearest_area = None
+
+        nearest_area_name = nearest_area["area_name"] if nearest_area else ""
+
+        if not location_name_text:
+            location_name_text = f"自選地點 / {nearest_area_name}附近" if nearest_area_name else "自選地點"
 
     security_content = f"{report_type} {item_name} {note} {location_name_text}"
     security_result = check_security_before_report(
@@ -339,6 +394,17 @@ def create_report():
             ),
         )
         report_id = cursor.lastrowid
+
+        if area_info["area_key"] == "custom":
+            cursor.execute(
+                """
+                INSERT INTO custom_location
+                    (report_id, custom_x, custom_y, nearest_area_id)
+                VALUES
+                    (%s, %s, %s, %s)
+                """,
+                (report_id, custom_x, custom_y, nearest_area_id),
+            )
 
         if report_type == "F":
             cursor.execute(

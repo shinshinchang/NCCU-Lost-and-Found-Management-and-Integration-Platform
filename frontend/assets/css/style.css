@@ -636,6 +636,7 @@ code {
   background: rgba(37, 99, 235, 0.12);
   border-radius: 10px;
   cursor: pointer;
+  overflow: visible;
   border-width: 2px;
   padding: 0;
   appearance: none;
@@ -729,6 +730,7 @@ code {
   background: rgba(59, 130, 246, 0.08);
   border-radius: 4px;
   cursor: pointer;
+  overflow: visible;
   padding: 0;
   appearance: none;
   z-index: 4;
@@ -1109,4 +1111,58 @@ button.is-loading,
   to {
     transform: rotate(360deg);
   }
+}
+
+.custom-location-picker {
+  cursor: crosshair;
+}
+
+.custom-location-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.custom-location-actions .primary-btn,
+.custom-location-actions .secondary-btn {
+  width: auto;
+  margin-top: 0;
+  min-width: 120px;
+}
+
+.hint-text {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.picker-region-layer,
+.picker-pin-layer,
+.picker-temp-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.picker-temp-layer {
+  z-index: 25;
+}
+
+.picker-map-pin {
+  pointer-events: none;
+  z-index: 15;
+}
+
+.marker-custom {
+  background: #dc2626;
+}
+
+.temp-custom-marker {
+  background: #2563eb;
+}
+
+.single-custom-marker {
+  width: 34px;
+  height: 34px;
+  font-size: 14px;
 }

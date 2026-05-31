@@ -11,6 +11,7 @@ let latestNotifications = [];
 let adminUserPanelMode = "suspicious";
 let locationAreas = [];
 let locationDetailsByArea = {};
+let selectedCustomLocation = null;
 const APP_BASE_URL = (() => {
   const origin = window.location.origin;
   if (origin && origin !== "null") {
@@ -187,6 +188,11 @@ function typeLabel(type) {
 }
 
 function getReportLocationDisplay(report) {
+  if (report?.area_key === "custom") {
+    const nearestName = report?.nearest_area_name || "";
+    return nearestName ? `自選地點 / ${nearestName}附近` : "自選地點";
+  }
+
   const areaName = report?.area_name || "";
   const detailName = report?.detail_name || "";
   const locationName = report?.location_name || "";
@@ -361,6 +367,30 @@ function renderMapPins(reports) {
   const groupedReports = groupReportsByArea(visibleReports);
 
   visibleReports.forEach((report) => {
+    if (
+      report.area_key === "custom"
+      && report.custom_x !== null
+      && report.custom_x !== undefined
+      && report.custom_y !== null
+      && report.custom_y !== undefined
+    ) {
+      const customPin = document.createElement("button");
+      customPin.type = "button";
+      customPin.className = "map-pin marker-custom";
+      customPin.style.left = `${report.custom_x}%`;
+      customPin.style.top = `${report.custom_y}%`;
+      customPin.title = `${report.item_name}｜${getReportLocationDisplay(report)}`;
+      customPin.textContent = report.type === "F" ? "拾" : "遺";
+
+      customPin.addEventListener("click", (event) => {
+        event.stopPropagation();
+        showDetailView(report);
+      });
+
+      mapPins.appendChild(customPin);
+      return;
+    }
+
     const area = resolveReportBuildingArea(report);
     let position;
 
@@ -449,6 +479,344 @@ function groupReportsByArea(reports) {
   return grouped;
 }
 
+function getSelectedAreaInfo(selectId) {
+  const select = document.getElementById(selectId);
+
+  if (!select) {
+    return { areaId: "", areaKey: "", areaName: "" };
+  }
+
+  const selectedOption = select.selectedOptions?.[0];
+
+  return {
+    areaId: select.value || "",
+    areaKey: selectedOption?.dataset?.areaKey || "",
+    areaName: selectedOption?.textContent?.trim() || "",
+  };
+}
+
+function ensureChooseCustomLocationButton() {
+  const reportAreaSelect = document.getElementById("reportAreaSelect");
+
+  if (!reportAreaSelect || document.getElementById("chooseCustomLocationBtn")) {
+    return;
+  }
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.id = "chooseCustomLocationBtn";
+  button.className = "secondary-btn hidden";
+  button.textContent = "選擇地點";
+
+  button.addEventListener("click", openCustomLocationPicker);
+  reportAreaSelect.insertAdjacentElement("afterend", button);
+}
+
+async function onReportAreaChange() {
+  const { areaId, areaKey } = getSelectedAreaInfo("reportAreaSelect");
+  const detailSelect = document.getElementById("reportDetailSelect");
+  const chooseCustomBtn = document.getElementById("chooseCustomLocationBtn");
+
+  selectedCustomLocation = null;
+
+  if (areaKey === "custom") {
+    if (detailSelect) {
+      detailSelect.classList.add("hidden");
+      detailSelect.innerHTML = '<option value="">自選地點不使用小地點</option>';
+    }
+
+    if (chooseCustomBtn) {
+      chooseCustomBtn.classList.remove("hidden");
+      chooseCustomBtn.textContent = "選擇地點";
+    }
+
+    return;
+  }
+
+  if (chooseCustomBtn) {
+    chooseCustomBtn.classList.add("hidden");
+    chooseCustomBtn.textContent = "選擇地點";
+  }
+
+  if (!areaId) {
+    if (detailSelect) {
+      detailSelect.classList.add("hidden");
+      detailSelect.innerHTML = '<option value="">全部</option>';
+    }
+    return;
+  }
+
+  await renderDetailSelectOptions("reportAreaSelect", "reportDetailSelect", "全部");
+}
+
+async function onFilterAreaChange() {
+  const { areaId, areaKey } = getSelectedAreaInfo("filterAreaSelect");
+  const detailSelect = document.getElementById("filterDetailSelect");
+
+  if (!detailSelect) {
+    return;
+  }
+
+  if (!areaId || areaKey === "custom") {
+    detailSelect.innerHTML = '<option value="">全部小地點</option>';
+    detailSelect.classList.add("hidden");
+    return;
+  }
+
+  await renderDetailSelectOptions("filterAreaSelect", "filterDetailSelect", "全部小地點");
+}
+
+function findBuildingAreaByPoint(x, y) {
+  return BUILDING_AREAS.find((area) => {
+    return (
+      x >= area.left
+      && x <= area.left + area.width
+      && y >= area.top
+      && y <= area.top + area.height
+    );
+  }) || null;
+}
+
+function findNearestBuildingArea(x, y) {
+  let nearest = null;
+  let minDistance = Number.POSITIVE_INFINITY;
+
+  BUILDING_AREAS.forEach((area) => {
+    const centerX = area.left + area.width / 2;
+    const centerY = area.top + area.height / 2;
+    const distance = Math.hypot(x - centerX, y - centerY);
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearest = area;
+    }
+  });
+
+  return nearest;
+}
+
+function resolveNearestAreaId(buildingArea) {
+  if (!buildingArea) {
+    return null;
+  }
+
+  const byKey = locationAreas.find((area) => area.area_key === buildingArea.key);
+  if (byKey) {
+    return byKey.area_id;
+  }
+
+  const byName = locationAreas.find((area) => area.area_name === buildingArea.name);
+  if (byName) {
+    return byName.area_id;
+  }
+
+  const aliases = buildingArea.aliases || [];
+  const byAlias = locationAreas.find((area) => aliases.some((alias) => alias === area.area_name));
+  return byAlias ? byAlias.area_id : null;
+}
+
+function renderTempCustomMarker(x, y) {
+  return `
+    <button type="button" class="map-pin temp-custom-marker" style="left: ${x}%; top: ${y}%;" title="暫存自選地點">自</button>
+  `;
+}
+
+function renderPickerMapRegions() {
+  return BUILDING_AREAS.map((area) => {
+    return `
+      <button
+        type="button"
+        class="map-region"
+        style="left: ${area.left}%; top: ${area.top}%; width: ${area.width}%; height: ${area.height}%;"
+        title="${escapeHtml(area.name)}"
+      >
+        <span class="map-region-label">${escapeHtml(area.name)}</span>
+      </button>
+    `;
+  }).join("");
+}
+
+function renderPickerMapPins() {
+  const visibleReports = latestReports.filter(shouldShowReportOnMap);
+
+  return visibleReports.map((report) => {
+    let x = null;
+    let y = null;
+
+    if (
+      report.area_key === "custom"
+      && report.custom_x !== null
+      && report.custom_x !== undefined
+      && report.custom_y !== null
+      && report.custom_y !== undefined
+    ) {
+      x = report.custom_x;
+      y = report.custom_y;
+    } else {
+      const area = resolveReportBuildingArea(report);
+
+      if (area) {
+        x = area.left + area.width / 2;
+        y = area.top + area.height / 2;
+      } else {
+        x = report.map_x || 50;
+        y = report.map_y || 50;
+      }
+    }
+
+    const typeText = report.type === "F" ? "拾" : "遺";
+
+    return `<div class="map-pin picker-map-pin" style="left: ${x}%; top: ${y}%;">${typeText}</div>`;
+  }).join("");
+}
+
+function openCustomLocationPicker() {
+  document.body.classList.remove("admin-mode");
+  hideAllViews();
+
+  document.getElementById("viewToolbar").classList.remove("hidden");
+  document.getElementById("detailView").classList.remove("hidden");
+  document.getElementById("viewTitle").textContent = "選擇自選地點";
+
+  const detailContent = document.getElementById("detailContent");
+  const tempMarker = selectedCustomLocation
+    ? renderTempCustomMarker(selectedCustomLocation.custom_x, selectedCustomLocation.custom_y)
+    : "";
+
+  detailContent.innerHTML = `
+    <section class="card">
+      <div class="detail-header">
+        <div>
+          <h2>選擇自選地點</h2>
+          <p class="hint-text">請點選非院館藍框範圍的位置。若在藍框內請改用一般大地點。</p>
+        </div>
+      </div>
+
+      <div id="customLocationPickerMap" class="map-wrapper custom-location-picker">
+        <img src="./assets/maps/campus-map.png" alt="政大校園地圖" />
+        <div class="picker-region-layer">${renderPickerMapRegions()}</div>
+        <div class="picker-pin-layer">${renderPickerMapPins()}</div>
+        <div id="customPickerTempLayer" class="picker-temp-layer">${tempMarker}</div>
+      </div>
+
+      <div class="custom-location-actions">
+        <button id="cancelCustomLocationBtn" type="button" class="secondary-btn">取消</button>
+        <button id="confirmCustomLocationBtn" type="button" class="primary-btn">確定</button>
+      </div>
+    </section>
+  `;
+
+  const map = document.getElementById("customLocationPickerMap");
+  if (map) {
+    map.addEventListener("click", (event) => handleCustomLocationMapClick(event, map));
+  }
+
+  document.getElementById("cancelCustomLocationBtn")?.addEventListener("click", cancelCustomLocationPicker);
+  document.getElementById("confirmCustomLocationBtn")?.addEventListener("click", confirmCustomLocationPicker);
+}
+
+function handleCustomLocationMapClick(event, mapElement) {
+  const rect = mapElement.getBoundingClientRect();
+  const x = ((event.clientX - rect.left) / rect.width) * 100;
+  const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+  if (findBuildingAreaByPoint(x, y)) {
+    alert("自選地點不能選在院館框線內。若地點在院館內，請直接選擇該大地點。");
+    return;
+  }
+
+  const nearestArea = findNearestBuildingArea(x, y);
+  selectedCustomLocation = {
+    custom_x: Number(x.toFixed(3)),
+    custom_y: Number(y.toFixed(3)),
+    nearest_area_id: resolveNearestAreaId(nearestArea),
+    nearest_area_key: nearestArea?.key || "",
+    nearest_area_name: nearestArea?.name || "",
+  };
+
+  const tempLayer = document.getElementById("customPickerTempLayer");
+  if (tempLayer) {
+    tempLayer.innerHTML = renderTempCustomMarker(selectedCustomLocation.custom_x, selectedCustomLocation.custom_y);
+  }
+}
+
+function cancelCustomLocationPicker() {
+  selectedCustomLocation = null;
+
+  const chooseCustomBtn = document.getElementById("chooseCustomLocationBtn");
+  if (chooseCustomBtn) {
+    chooseCustomBtn.textContent = "選擇地點";
+  }
+
+  showHomeView();
+}
+
+function confirmCustomLocationPicker() {
+  if (!selectedCustomLocation) {
+    alert("請先在地圖上選擇一個地點。");
+    return;
+  }
+
+  const chooseCustomBtn = document.getElementById("chooseCustomLocationBtn");
+
+  if (chooseCustomBtn) {
+    const nearbyText = selectedCustomLocation.nearest_area_name
+      ? `已選擇地點（${selectedCustomLocation.nearest_area_name}附近）`
+      : "已選擇地點";
+
+    chooseCustomBtn.textContent = nearbyText;
+  }
+
+  showHomeView();
+  alert("已暫存自選地點，送出通報後才會正式顯示在地圖上。");
+}
+
+function showCustomLocationDetail(reportId) {
+  const report = latestReports.find((item) => Number(item.report_id) === Number(reportId));
+
+  if (!report || report.area_key !== "custom") {
+    alert("找不到自選地點資料。");
+    return;
+  }
+
+  document.body.classList.remove("admin-mode");
+  hideAllViews();
+
+  document.getElementById("viewToolbar").classList.remove("hidden");
+  document.getElementById("detailView").classList.remove("hidden");
+  document.getElementById("viewTitle").textContent = "詳細地點";
+
+  const detailContent = document.getElementById("detailContent");
+  detailContent.innerHTML = `
+    <section class="card">
+      <div class="detail-header">
+        <div>
+          <h2>詳細地點</h2>
+          <p class="muted-text">${escapeHtml(getReportLocationDisplay(report))}</p>
+        </div>
+        <button id="backFromCustomLocationBtn" class="secondary-btn" type="button">回詳細資料</button>
+      </div>
+
+      <div class="map-wrapper">
+        <img src="./assets/maps/campus-map.png" alt="政大校園地圖" />
+        <div class="picker-temp-layer">
+          <button
+            type="button"
+            class="map-pin marker-custom single-custom-marker"
+            style="left: ${report.custom_x}%; top: ${report.custom_y}%;"
+            title="${escapeAttribute(report.item_name || "")}">
+            ${report.type === "F" ? "拾" : "遺"}
+          </button>
+        </div>
+      </div>
+    </section>
+  `;
+
+  document.getElementById("backFromCustomLocationBtn")?.addEventListener("click", () => {
+    showDetailView(report, currentDetailRecommendations, currentDetailFromMine);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const savedUser = localStorage.getItem("currentUser");
 
@@ -463,6 +831,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setTodayDate();
   setupGlobalButtonFeedback();
   bindEvents();
+  ensureChooseCustomLocationButton();
 
   await loadOptions();
   await loadLocationAreas();
@@ -543,15 +912,15 @@ function bindEvents() {
 
   const reportAreaSelect = document.getElementById("reportAreaSelect");
   if (reportAreaSelect) {
-    reportAreaSelect.addEventListener("change", () => {
-      renderDetailSelectOptions("reportAreaSelect", "reportDetailSelect", "全部");
+    reportAreaSelect.addEventListener("change", async () => {
+      await onReportAreaChange();
     });
   }
 
   const filterAreaSelect = document.getElementById("filterAreaSelect");
   if (filterAreaSelect) {
-    filterAreaSelect.addEventListener("change", () => {
-      renderDetailSelectOptions("filterAreaSelect", "filterDetailSelect", "全部小地點");
+    filterAreaSelect.addEventListener("change", async () => {
+      await onFilterAreaChange();
     });
   }
 
@@ -776,8 +1145,9 @@ async function renderDetailSelectOptions(areaSelectId, detailSelectId, firstOpti
   }
 
   const areaId = areaSelect.value;
+  const areaKey = areaSelect.selectedOptions?.[0]?.dataset?.areaKey || "";
 
-  if (!areaId) {
+  if (!areaId || areaKey === "custom") {
     detailSelect.innerHTML = `<option value="">${firstOptionText}</option>`;
     detailSelect.classList.add("hidden");
     return;
@@ -1410,6 +1780,14 @@ function renderDetail(report, recommendations = [], fromMine = false) {
       <div class="detail-field"><span>Report ID</span><strong>${escapeHtml(report.report_id || "尚無")}</strong></div>
     </div>
 
+    <div class="action-row">
+      ${
+        report.area_key === "custom"
+          ? `<button id="customLocationDetailBtn" type="button" class="secondary-btn">詳細地點</button>`
+          : ""
+      }
+    </div>
+
     <div class="detail-note">
       <span>補充描述</span>
       <strong>${escapeHtml(report.note || "無")}</strong>
@@ -1422,6 +1800,7 @@ function renderDetail(report, recommendations = [], fromMine = false) {
   const deleteBtn = document.getElementById("deleteReportBtn");
   const contactBtn = document.getElementById("contactSubmitterBtn");
   const claimBtn = document.getElementById("claimBtn");
+  const customLocationDetailBtn = document.getElementById("customLocationDetailBtn");
 
   if (doneBtn) {
     doneBtn.addEventListener("click", async (event) => {
@@ -1452,6 +1831,12 @@ function renderDetail(report, recommendations = [], fromMine = false) {
 
   if (claimBtn) {
     claimBtn.addEventListener("click", () => showClaimForm(report));
+  }
+
+  if (customLocationDetailBtn) {
+    customLocationDetailBtn.addEventListener("click", () => {
+      showCustomLocationDetail(report.report_id);
+    });
   }
 
   recommendations.forEach(item => {
@@ -1586,9 +1971,12 @@ async function submitReport(event) {
   const reportAreaSelect = document.getElementById("reportAreaSelect");
   const reportDetailSelect = document.getElementById("reportDetailSelect");
   const manualLocationTextInput = document.getElementById("manualLocationText");
+  const chooseCustomBtn = document.getElementById("chooseCustomLocationBtn");
 
   const areaId = reportAreaSelect?.value || "";
   const detailId = reportDetailSelect?.value || "";
+  const selectedAreaOption = reportAreaSelect?.selectedOptions?.[0] || null;
+  const selectedAreaKey = selectedAreaOption?.dataset?.areaKey || "";
   const manualLocationText = manualLocationTextInput?.value.trim() || "";
 
   if (!areaId) {
@@ -1606,9 +1994,28 @@ async function submitReport(event) {
   formData.append("user_id", currentUser.user_id);
   formData.append("status", reportType === "F" ? "待認領" : "待處理");
   formData.append("area_id", areaId);
-  formData.append("detail_id", detailId);
+  formData.append("detail_id", selectedAreaKey === "custom" ? "" : detailId);
   formData.append("manual_location_text", manualLocationText);
   formData.append("location_name", finalLocationText);
+
+  if (selectedAreaKey === "custom") {
+    if (!selectedCustomLocation) {
+      alert("請先按「選擇地點」並在地圖上選擇一個位置。");
+      return;
+    }
+
+    formData.append("custom_x", selectedCustomLocation.custom_x);
+    formData.append("custom_y", selectedCustomLocation.custom_y);
+    formData.append("nearest_area_id", selectedCustomLocation.nearest_area_id || "");
+
+    const nearbyText = selectedCustomLocation.nearest_area_name
+      ? `自選地點 / ${selectedCustomLocation.nearest_area_name}附近`
+      : "自選地點";
+
+    formData.set("location_name", nearbyText);
+    formData.set("manual_location_text", nearbyText);
+  }
+
   formData.append("has_verification_question", reportType === "F" && hasVerificationQuestion ? "true" : "false");
   formData.append(
     "verification_question",
@@ -1639,6 +2046,13 @@ async function submitReport(event) {
     if (reportDetailSelect) {
       reportDetailSelect.innerHTML = '<option value="">全部</option>';
       reportDetailSelect.classList.add("hidden");
+    }
+
+    selectedCustomLocation = null;
+
+    if (chooseCustomBtn) {
+      chooseCustomBtn.textContent = "選擇地點";
+      chooseCustomBtn.classList.add("hidden");
     }
 
     if (manualLocationTextInput) {
