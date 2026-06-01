@@ -244,7 +244,14 @@ def create_report():
     if not area_id:
         return jsonify({"success": False, "message": "請選擇大地點後再送出通報"}), 400
 
-    area_id = int(area_id)
+    try:
+        area_id = int(area_id)
+    except ValueError:
+        return jsonify({
+            "success": False,
+            "message": "大地點格式錯誤，請重新選擇地點。",
+        }), 400
+
     detail_id = int(detail_id) if detail_id else None
 
     if report_type not in ["L", "F"]:

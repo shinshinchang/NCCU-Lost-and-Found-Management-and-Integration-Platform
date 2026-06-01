@@ -1132,16 +1132,20 @@ function renderAreaSelectOptions(selectId, firstOptionText) {
     return;
   }
 
-  const customOption = selectId === "reportAreaSelect"
-    ? `
-      <option value="custom" data-area-key="custom">自選地點</option>
-    `
-    : "";
+  const customArea = selectId === "reportAreaSelect"
+    ? locationAreas.find((area) => area.area_key === "custom")
+    : null;
+
+  const visibleAreas = customArea
+    ? locationAreas.filter((area) => area.area_key !== "custom")
+    : locationAreas;
 
   select.innerHTML = `
     <option value="">${firstOptionText}</option>
-    ${customOption}
-    ${locationAreas.map((area) => `
+    ${customArea ? `
+      <option value="${customArea.area_id}" data-area-key="custom">${escapeHtml(customArea.area_name)}</option>
+    ` : ""}
+    ${visibleAreas.map((area) => `
       <option value="${area.area_id}" data-area-key="${area.area_key}">${escapeHtml(area.area_name)}</option>
     `).join("")}
   `;
@@ -1862,16 +1866,22 @@ function renderDetail(report, recommendations = [], fromMine = false) {
 function getOwnerActionsHtml(report, fromMine) {
   const isOwner = currentUser && String(report.user_id) === String(currentUser.user_id);
 
-  if (!isOwner || !fromMine) {
+  if (!isOwner) {
     return "";
   }
 
   const canMarkProcessed = report.type === "L" && report.status === "待處理";
+  const actionButtons = [];
+
+  if (canMarkProcessed && fromMine) {
+    actionButtons.push('<button id="markDoneBtn" class="secondary-btn">我已自己找回 / 標記已處理</button>');
+  }
+
+  actionButtons.push('<button id="deleteReportBtn" class="danger-btn">刪除此通報</button>');
 
   return `
     <div class="action-row">
-      ${canMarkProcessed ? `<button id="markDoneBtn" class="secondary-btn">我已自己找回 / 標記已處理</button>` : ""}
-      <button id="deleteReportBtn" class="danger-btn">刪除此通報</button>
+      ${actionButtons.join("")}
     </div>
   `;
 }
