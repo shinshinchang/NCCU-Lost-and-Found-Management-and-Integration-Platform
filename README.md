@@ -41,18 +41,3 @@ python app.py
 ```text
 http://127.0.0.1:5000
 ```
-
-## MySQL 串接
-
-等同學完成資料庫後，把 `.env` 裡面的：
-
-```env
-USE_MOCK_DB=false
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=nccu_lostfound
-```
-
-改成正式設定。
