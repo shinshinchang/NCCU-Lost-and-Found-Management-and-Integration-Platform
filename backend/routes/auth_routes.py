@@ -1,6 +1,7 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 
 from db import execute, fetch_one
+from werkzeug.security import generate_password_hash, check_password_hash
 
 auth_bp = Blueprint("auth_bp", __name__)
 
@@ -287,8 +288,44 @@ def admin_login():
         (username,),
     )
 
-    if not admin or admin["password_hash"] != password:
+    if not admin:
         return jsonify({"success": False, "message": "Admin 帳號或密碼錯誤"}), 401
+
+    stored = admin.get("password_hash") or ""
+
+    password_ok = False
+
+    try:
+        if stored and (stored.startswith("pbkdf2:") or stored.startswith("argon2:") or stored.startswith("bcrypt:") or ":" in stored):
+            password_ok = check_password_hash(stored, password)
+        else:
+            # Backwards compatibility: plain text stored password
+            password_ok = (stored == password)
+    except Exception:
+        password_ok = False
+
+    if not password_ok:
+        return jsonify({"success": False, "message": "Admin 帳號或密碼錯誤"}), 401
+
+    if stored and not (stored.startswith("pbkdf2:") or stored.startswith("argon2:") or stored.startswith("bcrypt:") or ":" in stored):
+        try:
+            new_hash = generate_password_hash(password)
+            execute(
+                """
+                UPDATE admin_account
+                SET password_hash = %s
+                WHERE admin_id = %s
+                """,
+                (new_hash, admin["admin_id"]),
+            )
+            admin["password_hash"] = new_hash
+        except Exception:
+            pass
+
+    # Set admin session
+    session["admin_id"] = admin["admin_id"]
+    session["admin_username"] = admin["username"]
+    session["admin_display_name"] = admin["display_name"]
 
     return jsonify({
         "success": True,
@@ -299,3 +336,13 @@ def admin_login():
             "display_name": admin["display_name"],
         },
     })
+
+
+@auth_bp.route("/admin/logout", methods=["POST"])
+def admin_logout():
+    session.clear()
+    return jsonify({
+        "success": True,
+        "message": "已登出",
+    })
+ 
